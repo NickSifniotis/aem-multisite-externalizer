@@ -29,8 +29,6 @@
         <module>core</module>
         <module>ui.apps</module>
         <module>ui.apps.structure</module>
-        <module>it.tests</module>
-        <module>it.launcher</module>
     </modules>
 
     <properties>
