@@ -108,11 +108,14 @@ public class MultiSiteExternalizerImpl implements Externalizer {
     private static String getAuthority(String scheme, String host, int port) {
         String result = host;
 
-        if (port > 0) {
-            if ((!"http".equals(scheme) || port != HTTP_PORT) && (!"https".equals(scheme) || port != HTTPS_PORT)) {
-                result += ":" + port;
-            }
+        if (port <= 0) {
+            return result;
         }
+
+        if ((!"http".equals(scheme) || port != HTTP_PORT) && (!"https".equals(scheme) || port != HTTPS_PORT)) {
+            result += ":" + port;
+        }
+
         return result;
     }
 
@@ -127,6 +130,8 @@ public class MultiSiteExternalizerImpl implements Externalizer {
                 try {
                     encoded.append(URLEncoder.encode(seg, "UTF-8").replaceAll("\\+", "%20"));
                 } catch (UnsupportedEncodingException e) {
+                    LOG.warn("Unsupported encoding; appending original segment: {}", seg);
+                    LOG.warn(String.valueOf(e));
                     encoded.append(seg);
                 }
             }
