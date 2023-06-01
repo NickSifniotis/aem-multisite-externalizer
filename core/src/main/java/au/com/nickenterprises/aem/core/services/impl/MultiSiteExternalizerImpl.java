@@ -50,7 +50,7 @@ import static au.com.nickenterprises.aem.core.constants.Constants.*;
 @Designate(ocd = MultiSiteExternalizerImpl.MultiTenantExternalizerConfig.class, factory = true)
 public class MultiSiteExternalizerImpl implements Externalizer {
     @ObjectClassDefinition(
-            name = "Day CQ Link Externalizer - Multi Site",
+            name = "Day CQ Link Externalizer - Multi Site Support",
             description = "Creates absolute URLs"
     )
     public @interface MultiTenantExternalizerConfig {
