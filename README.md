@@ -8,6 +8,13 @@ One of the main limitations of the OOTB AEM Externalizer is its single configura
 
 By using this approach, you avoid the problems associated with the OOTB solution - fragile hardcoded values in tenant-specific code, and a global configuration containing tenant-specific knowledge. The AEM Multisite Externalizer provides a more elegant and scalable solution, while still maintaining compatibility with the OOTB AEM Externalizer to ensure smooth operation with internal AEM components that depend on it.
 
+## Compatibility
+Please note that the AEM Multisite Externalizer is designed to be compatible with Adobe Experience Manager (AEM) versions 6.3 through 6.5. It has been tested on these versions to ensure reliable operation.
+
+However, it is important to mention that this component is not designed for nor compatible with the cloud-based AEM as a Cloud Service. Please ensure your AEM version aligns with the compatibility range before attempting to use this component.
+
+If you encounter any issues related to compatibility, please report them on the GitHub repository so we can work to address them.
+
 ## Usage
 
 The AEM Multisite Externalizer is designed to work in conjunction with the out-of-the-box (OOTB) AEM Externalizer. The configuration settings for this extension follow the same format as the default externalizer, but it introduces an additional tenant name field.
