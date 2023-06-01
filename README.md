@@ -39,7 +39,7 @@ Please note that there is no default setting available for the tenant name. If t
 ## Installation
 ### Download the Package
 
-Download the zip file for the AEM Multisite Externalizer from << TBA sorry chaps still a work in progress >>.
+You can find the latest release on our [Releases page](https://github.com/yourusername/yourrepository/releases). Download the zip file for the AEM Multisite Externalizer.
 
 ### Open CRX Package Manager
 
