@@ -29,12 +29,10 @@
         <module>core</module>
         <module>ui.apps</module>
         <module>ui.apps.structure</module>
-        <module>it.tests</module>
-        <module>it.launcher</module>
     </modules>
 
     <properties>
-        <revision>0.1</revision>
+        <revision>1.0.0</revision>
 
         <aem.host>localhost</aem.host>
         <aem.port>4502</aem.port>

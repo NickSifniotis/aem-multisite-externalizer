@@ -38,19 +38,24 @@ import java.util.Map;
 
 import static au.com.nickenterprises.aem.core.constants.Constants.*;
 
+/**
+ * Note the use of a negative service ranking.
+ * This ensures the default externalizer is returned when the service is requested without an Osgi filter
+ */
 @Component(
         service = Externalizer.class,
         property = {
-                "service.description=Day CQ Externalizer - Multi Site Edition",
-                "service.ranking:Integer=100",
+                "service.description=Day CQ Externalizer - Multi-Site Support",
+                "service.ranking:Integer=-1",
                 "service.scope=bundle"
         },
         immediate = true
 )
 @Designate(ocd = MultiSiteExternalizerImpl.MultiTenantExternalizerConfig.class, factory = true)
+@SuppressWarnings("unused")
 public class MultiSiteExternalizerImpl implements Externalizer {
     @ObjectClassDefinition(
-            name = "Day CQ Link Externalizer - Multi Site",
+            name = "Day CQ Link Externalizer - Multi Site Support",
             description = "Creates absolute URLs"
     )
     public @interface MultiTenantExternalizerConfig {
@@ -182,61 +187,85 @@ public class MultiSiteExternalizerImpl implements Externalizer {
         return path;
     }
 
+    @Override
+    public String publishLink(ResourceResolver resolver, String path) {
+        return this.generateExternalLink(resolver, PUBLISH, null, path);
+    }
+
+    @Override
+    public String publishLink(ResourceResolver resolver, String scheme, String path) {
+        return this.generateExternalLink(resolver, PUBLISH, scheme, path);
+    }
+
+    @Override
+    public String authorLink(ResourceResolver resolver, String path) {
+        return this.generateExternalLink(resolver, AUTHOR, null, path);
+    }
+
+    @Override
+    public String authorLink(ResourceResolver resolver, String scheme, String path) {
+        return this.generateExternalLink(resolver, AUTHOR, scheme, path);
+    }
+
+    @Override
+    public String externalLink(ResourceResolver resolver, String domain, String path) {
+        return this.generateExternalLink(resolver, domain, null, path);
+    }
+
+    @Override
+    public String externalLink(ResourceResolver resolver, String domain, String scheme, String path) {
+        return this.generateExternalLink(resolver, domain, scheme, path);
+    }
+
+    /** @deprecated */
+    @Override
+    @Deprecated
+    public String absoluteLink(ResourceResolver resolver, String scheme, String path) {
+        return this.generateExternalLink(resolver, LOCAL, scheme, path);
+    }
+
+    /** @deprecated */
+    @Override
+    @Deprecated
+    public String absoluteLink(String scheme, String path) {
+        return this.generateExternalLink(null, LOCAL, scheme, path);
+    }
+
+    @Override
+    public String absoluteLink(SlingHttpServletRequest request, String scheme, String path) {
+        return this.generateAbsoluteLink(request, scheme, path);
+    }
+
+    @Override
     public String relativeLink(SlingHttpServletRequest request, String path) {
         return request.getResourceResolver().map(request, path);
     }
 
-    public String absoluteLink(SlingHttpServletRequest request, String scheme, String path) {
-        return this.absoluteLink(request, null, scheme, path);
-    }
-
-    private String absoluteLink(SlingHttpServletRequest request, ResourceResolver resolver, String scheme, String path) {
+    private String generateAbsoluteLink(SlingHttpServletRequest request, String scheme, String path) {
         if (request == null) {
-            return this.externalLink(resolver, "local", scheme, path);
-        } else {
-            StringBuilder url = new StringBuilder();
-            url.append(scheme).append("://");
-            if (resolver == null) {
-                resolver = request.getResourceResolver();
-            }
-
-            URI uri = URI.create(this.determineActualPath(resolver, path));
-            if (uri.getRawAuthority() == null) {
-                url.append(getAuthority(scheme, request.getServerName(), request.getServerPort()));
-            } else {
-                url.append(uri.getRawAuthority());
-            }
-
-            url.append(request.getContextPath());
-            url.append(uri.getRawPath());
-            if (uri.getRawQuery() != null) {
-                url.append("?");
-                url.append(uri.getRawQuery());
-            }
-
-            if (uri.getRawFragment() != null) {
-                url.append("#");
-                url.append(uri.getRawFragment());
-            }
-
-            LOG.debug("externalizing absolute link (request scope): {} -> {}", path, url);
-            return url.toString();
+            return this.externalLink(null, LOCAL, scheme, path);
         }
+
+        ResourceResolver resolver = request.getResourceResolver();
+        StringBuilder url = new StringBuilder();
+        url.append(scheme).append("://");
+
+        URI uri = URI.create(this.determineActualPath(resolver, path));
+        if (uri.getRawAuthority() == null) {
+            url.append(getAuthority(scheme, request.getServerName(), request.getServerPort()));
+        } else {
+            url.append(uri.getRawAuthority());
+        }
+
+        url.append(request.getContextPath());
+        url.append(uri.getRawPath());
+        appendQueryString(url, uri);
+
+        LOG.debug("externalizing absolute link (request scope): {} -> {}", path, url);
+        return url.toString();
     }
 
-    /** @deprecated */
-    @Deprecated
-    public String absoluteLink(ResourceResolver resolver, String scheme, String path) {
-        return this.externalLink(resolver, LOCAL, scheme, path);
-    }
-
-    /** @deprecated */
-    @Deprecated
-    public String absoluteLink(String scheme, String path) {
-        return this.externalLink(null, LOCAL, scheme, path);
-    }
-
-    public String externalLink(ResourceResolver resolver, String domain, String scheme, String path) {
+    private String generateExternalLink(ResourceResolver resolver, String domain, String scheme, String path) {
         LOG.debug("Resolving path {} for tenant {}", path, this.tenantName);
 
         if (domain == null) {
@@ -268,6 +297,13 @@ public class MultiSiteExternalizerImpl implements Externalizer {
         }
 
         url.append(mapped.getRawPath());
+        appendQueryString(url, mapped);
+
+        LOG.debug("externalizing link for '{}': {} -> {}", domain, path, url);
+        return url.toString();
+    }
+
+    private static void appendQueryString(StringBuilder url, URI mapped) {
         if (mapped.getRawQuery() != null) {
             url.append("?");
             url.append(mapped.getRawQuery());
@@ -277,29 +313,5 @@ public class MultiSiteExternalizerImpl implements Externalizer {
             url.append("#");
             url.append(mapped.getRawFragment());
         }
-
-        LOG.debug("externalizing link for '{}': {} -> {}", domain, path, url);
-        return url.toString();
     }
-
-    public String publishLink(ResourceResolver resolver, String path) {
-        return this.externalLink(resolver, PUBLISH, null, path);
-    }
-
-    public String publishLink(ResourceResolver resolver, String scheme, String path) {
-        return this.externalLink(resolver, PUBLISH, scheme, path);
-    }
-
-    public String authorLink(ResourceResolver resolver, String path) {
-        return this.externalLink(resolver, AUTHOR, null, path);
-    }
-
-    public String authorLink(ResourceResolver resolver, String scheme, String path) {
-        return this.externalLink(resolver, AUTHOR, scheme, path);
-    }
-
-    public String externalLink(ResourceResolver resolver, String domain, String path) {
-        return this.externalLink(resolver, domain, null, path);
-    }
-
 }

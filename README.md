@@ -1,70 +1,70 @@
-# Sample AEM project template
+# AEM Multisite Externalizer
 
-This is a project template for AEM-based applications. It is intended as a best-practice set of examples as well as a potential starting point to develop your own functionality.
+The AEM Multisite Externalizer is an enhanced version of the out-of-the-box AEM Link Externalizer component, designed to support multi-site and multi-tenant applications.
 
-## Modules
+:information_source: Note: The AEM Multisite Externalizer is an open-source project and is not an officially supported Adobe product.
 
-The main parts of the template are:
+One of the main limitations of the OOTB AEM Externalizer is its single configuration. The Multisite Externalizer, on the other hand, offers a factory configuration that allows for the creation of multiple configurations, providing the flexibility to create one configuration per tenant.
 
-* core: Java bundle containing all core functionality like OSGi services, listeners or schedulers, as well as component-related Java code such as servlets or request filters.
-* ui.apps: contains the /apps (and /etc) parts of the project, ie JS&CSS clientlibs, components, templates, runmode specific configs as well as Hobbes-tests
-* ui.content: contains sample content using the components from the ui.apps
-* ui.tests: Java bundle containing JUnit tests that are executed server-side. This bundle is not to be deployed onto production.
-* ui.launcher: contains glue code that deploys the ui.tests bundle (and dependent bundles) to the server and triggers the remote JUnit execution
-* ui.frontend: an optional dedicated front-end build mechanism (Angular, React or general Webpack project)
+By using this approach, you avoid the problems associated with the OOTB solution - fragile hardcoded values in tenant-specific code, and a global configuration containing tenant-specific knowledge. The AEM Multisite Externalizer provides a more elegant and scalable solution, while still maintaining compatibility with the OOTB AEM Externalizer to ensure smooth operation with internal AEM components that depend on it.
 
-## How to build
+## Usage
 
-To build all the modules run in the project root directory the following command with Maven 3:
+The AEM Multisite Externalizer is designed to work in conjunction with the out-of-the-box (OOTB) AEM Externalizer. The configuration settings for this extension follow the same format as the default externalizer, but it introduces an additional tenant name field.
 
-    mvn clean install
+Note that fields marked as depricated by Adobe have been removed.
 
-If you have a running AEM instance you can build and package the whole project and deploy into AEM with
+![Configuration Manager Screenshot](images/config-screen.png)
 
-    mvn clean install -PautoInstallPackage
+![Component Configuration Screenshot](images/config.png)
 
-Or to deploy it to a publish instance, run
+:warning: Important: Many internal AEM components use the default Externalizer. It is crucial to maintain sensible default values in the OOTB Externalizer to ensure stable and predictable outcomes.
 
-    mvn clean install -PautoInstallPackagePublish
+The tenant name you provide in the configuration is used to obtain a reference to the externalizer within your tenant's Java bundle. To do so, you'll need to change the way you reference the externalizer.
 
-Or alternatively
+Instead of using:
 
-    mvn clean install -PautoInstallPackage -Daem.port=4503
+    @Reference
+    private Externalizer externalizer;
 
-Or to deploy only the bundle to the author, run
+You should use an OSGi filter. This can be done by changing the above code to:
 
-    mvn clean install -PautoInstallBundle
+    @Reference(target="(tenantName=<your-site-name>)")
+    private Externalizer externalizer;
 
-## Testing
+In this snippet, <your-site-name> should be replaced with your specific tenant's site name.
 
-There are three levels of testing contained in the project:
+Please note that there is no default setting available for the tenant name. If the OSGi filter doesn't find any matches for the provided tenant name, the reference will not be satisfied.
 
-* unit test in core: this show-cases classic unit testing of the code contained in the bundle. To test, execute:
+## Installation
+### Download the Package
 
-    mvn clean test
+You can find the latest release on our [Releases page](https://github.com/yourusername/yourrepository/releases). Download the zip file for the AEM Multisite Externalizer.
 
-* server-side integration tests: this allows to run unit-like tests in the AEM-environment, ie on the AEM server. To test, execute:
+### Open CRX Package Manager
 
-    mvn clean verify -PintegrationTests
+Navigate to your instance's CRX Package Manager. This can typically be found at http://<your_AEM_instance>:<your_port>/crx/packmgr/index.jsp.
 
-* client-side Hobbes.js tests: JavaScript-based browser-side tests that verify browser-side behavior. To test:
+### Upload the Package
 
-    in the browser, open the page in 'Developer mode', open the left panel and switch to the 'Tests' tab and find the generated 'MyName Tests' and run them.
+Click on the Upload Package button at the top left of the page. Browse for the downloaded zip file and click OK to upload it.
 
-## ClientLibs
+### Install the Package
 
-The frontend module is made available using an [AEM ClientLib](https://helpx.adobe.com/experience-manager/6-5/sites/developing/using/clientlibs.html). When executing the NPM build script, the app is built and the [`aem-clientlib-generator`](https://github.com/wcm-io-frontend/aem-clientlib-generator) package takes the resulting build output and transforms it into such a ClientLib.
+Once the package is uploaded, you will see it in the list of packages in the CRX Package Manager. Locate the AEM Multisite Externalizer (Open-Source Edition) package and click on the Install button next to it.
 
-A ClientLib will consist of the following files and directories:
+### Verify Installation
 
-- `css/`: CSS files which can be requested in the HTML
-- `css.txt` (tells AEM the order and names of files in `css/` so they can be merged)
-- `js/`: JavaScript files which can be requested in the HTML
-- `js.txt` (tells AEM the order and names of files in `js/` so they can be merged
-- `resources/`: Source maps, non-entrypoint code chunks (resulting from code splitting), static assets (e.g. icons), etc.
+After the installation is complete, ensure the package is installed correctly. You can do this by checking that the package status is shown as Installed.
 
-## Maven settings
+## Support
+If you encounter any problems or have any questions about the AEM Multisite Externalizer, please open an issue on this GitHub repository. We encourage users to collaborate and help each other in troubleshooting.
 
-The project comes with the auto-public repository configured. To setup the repository in your Maven settings, refer to:
+When opening an issue, try to be as descriptive as possible. Include any error messages you're seeing, steps to reproduce the issue, and any other information you think might be relevant. The more details you provide, the easier it will be for others to understand your problem and provide help.
 
-    http://helpx.adobe.com/experience-manager/kb/SetUpTheAdobeMavenRepository.html
+Please note that while we strive to review issues as they are submitted, response times may vary. Your patience and understanding are appreciated.
+
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the LICENSE.md file for details.
