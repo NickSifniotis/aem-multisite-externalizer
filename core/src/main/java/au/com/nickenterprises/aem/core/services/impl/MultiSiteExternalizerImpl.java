@@ -41,8 +41,8 @@ import static au.com.nickenterprises.aem.core.constants.Constants.*;
 @Component(
         service = Externalizer.class,
         property = {
-                "service.description=Day CQ Externalizer - Multi Site Edition",
-                "service.ranking:Integer=100",
+                "service.description=Day CQ Externalizer - Multi-Site Support",
+                "service.ranking:Integer=-1",
                 "service.scope=bundle"
         },
         immediate = true
